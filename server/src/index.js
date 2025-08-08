@@ -13,12 +13,16 @@ const baseURL = process.env.BASE_URL;
 
 app.use(
   cors({
-    origin: baseURL,
+    origin: [baseURL, "https://inventory-management-system-chi-six.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
+
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 
