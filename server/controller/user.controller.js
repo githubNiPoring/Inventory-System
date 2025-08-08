@@ -8,12 +8,13 @@ const supabase = require("../src/db_config");
 
 const getUsers = async (req, res) => {
   try {
-    const { data, error } = await supabase.from("users").select();
-    res.json({
-      connected: !error,
-      error: error?.message,
-      data: data,
+    res.cookie("test", "hello", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      expires: new Date(Date.now() + 600000),
     });
+    res.send("Cookie set");
   } catch (err) {
     res.json({
       connected: false,
@@ -100,9 +101,9 @@ const login = async (req, res) => {
 
     const token = createSecretToken(data[0].id);
     res.cookie("token", token, {
-      sameSite: "none", // allow cross-site cookie
-      secure: true, // must be true for cross-site cookies on HTTPS
-      httpOnly: true, // secure it from JS access (good practice)
+      sameSite: "strict", // allow cross-site cookie
+      // secure: true, // must be true for cross-site cookies on HTTPS
+      httpOnly: false, // secure it from JS access (good practice)
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
     });
 
