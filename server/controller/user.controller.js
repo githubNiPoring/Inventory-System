@@ -100,10 +100,10 @@ const login = async (req, res) => {
 
     const token = createSecretToken(data[0].id);
     res.cookie("token", token, {
-      sameSite: "strict",
+      sameSite: "none", // allow cross-site cookie
+      secure: true, // must be true for cross-site cookies on HTTPS
+      httpOnly: true, // secure it from JS access (good practice)
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-      // secure: true,
-      httpOnly: false,
     });
 
     res.status(200).json({

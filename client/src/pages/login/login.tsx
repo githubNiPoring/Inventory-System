@@ -42,7 +42,7 @@ const Login = () => {
     try {
       // Make API call to your backend login endpoint
       const response = await axios.post(`${BASE_URL}/api/v1/login`, formData, {
-        withCredentials: true, // This ensures cookies are sent/received
+        withCredentials: true,
       });
 
       // If login successful, navigate to home
