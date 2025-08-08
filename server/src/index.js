@@ -13,7 +13,7 @@ const baseURL = process.env.BASE_URL;
 
 app.use(
   cors({
-    origin: [baseURL, "https://inventory-management-system-chi-six.vercel.app"],
+    origin: [baseURL, "https://inventory-system-blond-chi.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
