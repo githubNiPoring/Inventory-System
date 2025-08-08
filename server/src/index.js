@@ -20,9 +20,6 @@ app.use(
   })
 );
 
-// Handle preflight requests
-app.options("*", cors());
-
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 
