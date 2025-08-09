@@ -1,25 +1,46 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
 const { createSecretToken } = require("../utils/secret.token");
 const sendEmail = require("../utils/send.mail");
 const supabase = require("../src/db_config");
 
-const getUsers = async (req, res) => {
+// Add this to your user routes (backend)
+const checkAuth = async (req, res) => {
   try {
-    res.cookie("test", "hello", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      expires: new Date(Date.now() + 600000),
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({
+        message: "No token provided",
+        success: false,
+        authenticated: false,
+      });
+    }
+
+    // Verify the token (assuming you have a verifyToken function)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Optionally get user data
+    const { data: userData } = await supabase
+      .from("users")
+      .select("id, email, firstname")
+      .eq("id", decoded.id)
+      .single();
+
+    res.status(200).json({
+      message: "Authenticated",
+      success: true,
+      authenticated: true,
+      user: userData,
     });
-    res.send("Cookie set");
-  } catch (err) {
-    res.json({
-      connected: false,
-      error: err.message,
-      message: "Failed to fetch users",
+  } catch (error) {
+    res.status(401).json({
+      message: "Invalid token",
+      success: false,
+      authenticated: false,
     });
   }
 };
@@ -339,4 +360,4 @@ const verify = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, login, signup, verify };
+module.exports = { checkAuth, login, signup, verify };

@@ -1,14 +1,17 @@
-const getTokenFromCookie = () => {
-  const cookies = document.cookie.split(";");
+import axios from "axios";
 
-  for (let cookie of cookies) {
-    const [name, value] = cookie.trim().split("=");
-    if (name === "token") {
-      return value;
-    }
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const checkAuth = async (): Promise<boolean> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/v1/check-auth`, {
+      withCredentials: true,
+    });
+
+    return response.data.authenticated;
+  } catch (error) {
+    return false;
   }
-
-  return null;
 };
 
-export default getTokenFromCookie;
+export default checkAuth;
