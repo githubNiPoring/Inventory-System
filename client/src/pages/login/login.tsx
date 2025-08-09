@@ -1,10 +1,10 @@
 import axios from "axios";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Eye, EyeClosed } from "lucide-react";
 
-import checkAuth from "../components/authhook";
+import checkAuth, { clearAuthCache } from "../components/authhook";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -23,39 +23,48 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
   const navigate = useNavigate();
+
+  // Use useRef to prevent multiple auth checks
   const hasCheckedAuth = useRef(false);
+  const isNavigating = useRef(false);
 
-  useEffect(() => {
-    // Only run once
-    if (hasCheckedAuth.current) return;
+  // Memoize the auth verification function
+  const verifyAuth = useCallback(async () => {
+    // Prevent multiple simultaneous auth checks
+    if (hasCheckedAuth.current || isNavigating.current) {
+      return;
+    }
 
-    const verifyAuth = async () => {
-      try {
-        console.log("Starting auth verification...");
-        hasCheckedAuth.current = true;
+    try {
+      console.log("Starting auth verification...");
+      hasCheckedAuth.current = true;
 
-        const isAuthenticated = await checkAuth();
-        console.log("Auth check result:", isAuthenticated);
+      const isAuthenticated = await checkAuth();
+      console.log("Auth check result:", isAuthenticated);
 
-        if (isAuthenticated) {
-          console.log("User is authenticated, redirecting to home");
-          navigate("/home", { replace: true });
-          return;
-        }
+      if (isAuthenticated && !isNavigating.current) {
+        console.log("User is authenticated, redirecting to home");
+        isNavigating.current = true;
+        navigate("/home", { replace: true });
+        return;
+      }
 
-        console.log("User not authenticated, showing login form");
-      } catch (error) {
-        console.error("Auth verification error:", error);
-      } finally {
-        // Add a small delay to prevent flickering
+      console.log("User not authenticated, showing login form");
+    } catch (error) {
+      console.error("Auth verification error:", error);
+    } finally {
+      // Only set checkingAuth to false if we're not navigating
+      if (!isNavigating.current) {
         setTimeout(() => {
           setCheckingAuth(false);
         }, 500);
       }
-    };
+    }
+  }, [navigate]);
 
+  useEffect(() => {
     verifyAuth();
-  }, []);
+  }, [verifyAuth]);
 
   // Show loading while checking authentication
   if (checkingAuth) {
@@ -80,9 +89,10 @@ const Login = () => {
         withCredentials: true,
       });
 
-      // If login successful, navigate to home
       if (response.status === 200) {
-        navigate("/home");
+        clearAuthCache(); // Clear the cache so next auth check is fresh
+        isNavigating.current = true;
+        navigate("/home", { replace: true });
       }
     } catch (err: any) {
       // Handle login errors
