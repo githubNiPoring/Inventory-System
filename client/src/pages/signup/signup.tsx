@@ -5,7 +5,7 @@ import axios from "axios";
 
 import { Eye, EyeClosed } from "lucide-react";
 
-import getTokenFromCookie from "../components/authhook";
+import checkAuth from "../components/authhook";
 
 interface FormData {
   firstname: string;
@@ -41,14 +41,28 @@ const Signup = () => {
     useState<ResponseMessage | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
 
   useEffect(() => {
-    const token = getTokenFromCookie();
-    if (token) {
-      // User is already logged in, redirect to home
-      navigate("/home", { replace: true });
-    }
+    const verifyAuth = async () => {
+      const isAuthenticated = await checkAuth();
+      if (isAuthenticated) {
+        navigate("/home", { replace: true });
+      }
+      setCheckingAuth(false);
+    };
+
+    verifyAuth();
   }, [navigate]);
+
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-gray-100">Checking authentication...</div>
+      </div>
+    );
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target;
