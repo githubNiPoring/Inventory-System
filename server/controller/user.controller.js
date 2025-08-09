@@ -10,9 +10,14 @@ const supabase = require("../src/db_config");
 // Add this to your user routes (backend)
 const checkAuth = async (req, res) => {
   try {
+    console.log("CheckAuth called from origin:", req.headers.origin);
+    console.log("Cookies received:", req.cookies);
+    console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
+
     const token = req.cookies.token;
 
     if (!token) {
+      console.log("No token found in cookies");
       return res.status(401).json({
         message: "No token provided",
         success: false,
@@ -20,15 +25,29 @@ const checkAuth = async (req, res) => {
       });
     }
 
-    // Verify the token (assuming you have a verifyToken function)
+    console.log("Token found, verifying...");
+
+    // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Token verified for user:", decoded.id);
 
     // Optionally get user data
-    const { data: userData } = await supabase
+    const { data: userData, error } = await supabase
       .from("users")
       .select("id, email, firstname")
       .eq("id", decoded.id)
       .single();
+
+    if (error) {
+      console.error("Database error:", error);
+      return res.status(401).json({
+        message: "User not found",
+        success: false,
+        authenticated: false,
+      });
+    }
+
+    console.log("User authenticated successfully:", userData.email);
 
     res.status(200).json({
       message: "Authenticated",
@@ -37,10 +56,12 @@ const checkAuth = async (req, res) => {
       user: userData,
     });
   } catch (error) {
+    console.error("CheckAuth error:", error.message);
     res.status(401).json({
       message: "Invalid token",
       success: false,
       authenticated: false,
+      error: error.message, // Add this for debugging
     });
   }
 };

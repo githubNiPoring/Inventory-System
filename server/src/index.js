@@ -48,7 +48,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(cookieParser(process.env.JWT_SECRET));
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

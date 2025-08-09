@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
@@ -42,18 +42,39 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+  const hasCheckedAuth = useRef(false);
 
   useEffect(() => {
+    // Only run once
+    if (hasCheckedAuth.current) return;
+
     const verifyAuth = async () => {
-      const isAuthenticated = await checkAuth();
-      if (isAuthenticated) {
-        navigate("/home", { replace: true });
+      try {
+        console.log("Starting auth verification...");
+        hasCheckedAuth.current = true;
+
+        const isAuthenticated = await checkAuth();
+        console.log("Auth check result:", isAuthenticated);
+
+        if (isAuthenticated) {
+          console.log("User is authenticated, redirecting to home");
+          navigate("/home", { replace: true });
+          return;
+        }
+
+        console.log("User not authenticated, showing login form");
+      } catch (error) {
+        console.error("Auth verification error:", error);
+      } finally {
+        // Add a small delay to prevent flickering
+        setTimeout(() => {
+          setCheckingAuth(false);
+        }, 500);
       }
-      setCheckingAuth(false);
     };
 
     verifyAuth();
-  }, [navigate]);
+  }, []); // Remove navigate from dependencies to prevent re-runs
 
   // Show loading while checking authentication
   if (checkingAuth) {
