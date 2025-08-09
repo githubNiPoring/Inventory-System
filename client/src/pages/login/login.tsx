@@ -55,7 +55,7 @@ const Login = () => {
     };
 
     verifyAuth();
-  }, []); // Remove navigate from dependencies to prevent re-runs
+  }, []);
 
   // Show loading while checking authentication
   if (checkingAuth) {
