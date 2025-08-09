@@ -381,4 +381,40 @@ const verify = async (req, res) => {
   }
 };
 
-module.exports = { checkAuth, login, signup, verify };
+const logout = async (req, res) => {
+  try {
+    console.log("Logout attempt from origin:", req.headers.origin);
+
+    // Clear the cookie by setting it with the same options but with past expiration
+    res.cookie("token", "", {
+      httpOnly: process.env.NODE_ENV === "production" ? true : false,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      expires: new Date(0), // Set expiration to past date
+    });
+
+    // Alternative method - use res.clearCookie
+    res.clearCookie("token", {
+      httpOnly: process.env.NODE_ENV === "production" ? true : false,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/", // Make sure to include the path
+    });
+
+    console.log("Cookie cleared successfully");
+
+    res.status(200).json({
+      message: "Logged out successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      message: "Error logging out",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { checkAuth, login, signup, verify, logout };

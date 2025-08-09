@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import Cookie from "js-cookie";
+import axios from "axios";
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 import {
   House,
@@ -34,34 +36,18 @@ const SidebarItem = ({
 
   const handleLogOut = async () => {
     try {
-      // Multiple strategies to ensure cookie removal
-      Cookie.remove("token");
-      Cookie.remove("token", { path: "/" });
-      Cookie.remove("token", { path: "/", domain: window.location.hostname });
+      await axios.post(
+        `${BASE_URL}/api/v1/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
 
-      // Manual cookie removal as fallback
-      document.cookie =
-        "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
-
-      // Optional: Call server logout endpoint to invalidate session
-      // await axios.post(`${BASE_URL}/api/v1/logout`, {}, { withCredentials: true });
-
-      // Navigate first, then reload
-      navigate("/login", { replace: true });
-
-      // Small delay to ensure navigation starts, then reload
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      window.location.reload();
     } catch (error) {
       console.error("Logout failed:", error);
-
-      // Even if there's an error, try to redirect
       navigate("/login", { replace: true });
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
     }
   };
 

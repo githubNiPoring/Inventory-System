@@ -10,18 +10,14 @@ const checkAuth = async (): Promise<boolean> => {
   try {
     // Return cached result if it's still valid
     if (authCache && Date.now() - authCache.timestamp < CACHE_DURATION) {
-      console.log("Returning cached auth result:", authCache.result);
       return authCache.result;
     }
-
-    console.log("Checking auth with BASE_URL:", BASE_URL);
 
     const response = await axios.get(`${BASE_URL}/api/v1/check-auth`, {
       withCredentials: true,
       timeout: 10000, // 10 second timeout
     });
 
-    console.log("Auth check response:", response.data);
     const isAuthenticated = response.data.authenticated || false;
 
     // Cache the result
