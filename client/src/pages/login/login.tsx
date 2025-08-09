@@ -1,8 +1,10 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Eye, EyeClosed } from "lucide-react";
+
+import checkAuth from "../components/authhook";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -19,7 +21,47 @@ const Login = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const verifyAuth = async () => {
+      try {
+        const isAuthenticated = await checkAuth();
+
+        if (isMounted) {
+          if (isAuthenticated) {
+            // User is already authenticated, redirect to home
+            navigate("/home", { replace: true });
+            return;
+          }
+          setCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error("Auth verification error:", error);
+        if (isMounted) {
+          setCheckingAuth(false);
+        }
+      }
+    };
+
+    verifyAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-gray-100">Checking authentication...</div>
+      </div>
+    );
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
