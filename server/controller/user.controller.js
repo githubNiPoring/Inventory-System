@@ -100,10 +100,12 @@ const login = async (req, res) => {
     }
 
     const token = createSecretToken(data[0].id);
+    console.log("Login attempt from origin:", req.headers.origin);
+    console.log("Cookie being set:", token);
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      httpOnly: process.env.NODE_ENV === "production" ? true : false,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
     });
 
