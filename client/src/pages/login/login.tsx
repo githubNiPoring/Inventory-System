@@ -1,10 +1,8 @@
 import axios from "axios";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Eye, EyeClosed } from "lucide-react";
-
-import checkAuth, { clearAuthCache } from "../components/authhook";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -21,59 +19,7 @@ const Login = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
   const navigate = useNavigate();
-
-  // Use useRef to prevent multiple auth checks
-  const hasCheckedAuth = useRef(false);
-  const isNavigating = useRef(false);
-
-  // Memoize the auth verification function
-  const verifyAuth = useCallback(async () => {
-    // Prevent multiple simultaneous auth checks
-    if (hasCheckedAuth.current || isNavigating.current) {
-      return;
-    }
-
-    try {
-      console.log("Starting auth verification...");
-      hasCheckedAuth.current = true;
-
-      const isAuthenticated = await checkAuth();
-      console.log("Auth check result:", isAuthenticated);
-
-      if (isAuthenticated && !isNavigating.current) {
-        console.log("User is authenticated, redirecting to home");
-        isNavigating.current = true;
-        navigate("/home", { replace: true });
-        return;
-      }
-
-      console.log("User not authenticated, showing login form");
-    } catch (error) {
-      console.error("Auth verification error:", error);
-    } finally {
-      // Only set checkingAuth to false if we're not navigating
-      if (!isNavigating.current) {
-        setTimeout(() => {
-          setCheckingAuth(false);
-        }, 500);
-      }
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    verifyAuth();
-  }, [verifyAuth]);
-
-  // Show loading while checking authentication
-  if (checkingAuth) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-100">Checking authentication...</div>
-      </div>
-    );
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -90,8 +36,6 @@ const Login = () => {
       });
 
       if (response.status === 200) {
-        clearAuthCache(); // Clear the cache so next auth check is fresh
-        isNavigating.current = true;
         navigate("/home", { replace: true });
       }
     } catch (err: any) {
