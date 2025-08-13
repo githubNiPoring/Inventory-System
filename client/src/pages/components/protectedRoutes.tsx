@@ -16,6 +16,7 @@ const ProtectedRoute = ({ children }: ProtectedRoutesProps) => {
     const verifyAuth = async () => {
       try {
         const authenticated = await checkAuth();
+        console.log("this is the token: " + authenticated);
 
         if (isMounted) {
           setIsAuthenticated(authenticated);

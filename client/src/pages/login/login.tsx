@@ -77,7 +77,8 @@ const Login = () => {
         withCredentials: true,
       });
 
-      if (response.status === 200) {
+      if (response.status === 200 && response.data.token) {
+        localStorage.setItem("token", response.data.token);
         navigate("/home", { replace: true });
       }
     } catch (err: any) {

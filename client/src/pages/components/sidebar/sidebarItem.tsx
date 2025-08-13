@@ -36,6 +36,7 @@ const SidebarItem = ({
 
   const handleLogOut = async () => {
     try {
+      localStorage.removeItem("token");
       await axios.post(
         `${BASE_URL}/api/v1/logout`,
         {},

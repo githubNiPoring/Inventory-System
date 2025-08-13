@@ -10,18 +10,27 @@ const supabase = require("../src/db_config");
 // Add this to your user routes (backend)
 const checkAuth = async (req, res) => {
   try {
-    const token = req.cookies.token;
+    // Check for token in Authorization header first, then fallback to cookies
+    let token = null;
+
+    // Check Authorization header (Bearer token)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+
+    // Fallback to cookies if no Bearer token found
+    if (!token) {
+      token = req.cookies.token;
+    }
 
     if (!token) {
-      console.log("No token found in cookies");
       return res.status(401).json({
         message: "No token provided",
         success: false,
         authenticated: false,
       });
     }
-
-    console.log("Token found, verifying...");
 
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -57,7 +66,7 @@ const checkAuth = async (req, res) => {
       message: "Invalid token",
       success: false,
       authenticated: false,
-      error: error.message, // Add this for debugging
+      error: error.message,
     });
   }
 };
@@ -138,14 +147,14 @@ const login = async (req, res) => {
     }
 
     const token = createSecretToken(data[0].id);
-    console.log("Login attempt from origin:", req.headers.origin);
-    console.log("Cookie being set:", token);
-    res.cookie("token", token, {
-      httpOnly: process.env.NODE_ENV === "production" ? true : false,
-      secure: process.env.NODE_ENV === "production" ? true : false,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-    });
+    // console.log("Login attempt from origin:", req.headers.origin);
+    // console.log("Cookie being set:", token);
+    // res.cookie("token", token, {
+    //   httpOnly: process.env.NODE_ENV === "production" ? true : false,
+    //   secure: process.env.NODE_ENV === "production" ? true : false,
+    //   sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    //   expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    // });
 
     res.status(200).json({
       message: "Logged in successfully",
