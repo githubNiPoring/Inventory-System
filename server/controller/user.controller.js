@@ -10,10 +10,6 @@ const supabase = require("../src/db_config");
 // Add this to your user routes (backend)
 const checkAuth = async (req, res) => {
   try {
-    console.log("CheckAuth called from origin:", req.headers.origin);
-    console.log("Cookies received:", req.cookies);
-    console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
-
     const token = req.cookies.token;
 
     if (!token) {
